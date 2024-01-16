@@ -1,5 +1,7 @@
 use reqwest;
 use serde_json::Value;
+use btcturk::{Client, ApiKeys};
+use btcturk::http::private::account_balance::AssetBalance;
 
 pub struct BTCTurkData {
     pub ask_price: f64,
@@ -23,4 +25,15 @@ pub async fn get_btcturk_data(pair: &str) -> Result<BTCTurkData, Box<dyn std::er
     let bid_volume = bid[1].as_str().ok_or("Invalid data format for bid volume")?.parse::<f64>()?;
 
     Ok(BTCTurkData { ask_price, ask_volume, bid_price, bid_volume })
+}
+
+pub async fn get_balance(asset: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let keys = ApiKeys::new("PUBLICKEY", "PRIVATEKEY")?;
+    let client = Client::new(Some(keys), None)?;
+
+    let balances: Vec<AssetBalance> = client.account_balance().await?;
+
+    // parse asset and return it
+
+    Ok(())
 }
