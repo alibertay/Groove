@@ -2,6 +2,7 @@ use reqwest;
 use serde_json::Value;
 use btcturk::{Client, ApiKeys};
 use btcturk::http::private::account_balance::AssetBalance;
+use rust_decimal::prelude::*;
 
 pub struct BTCTurkData {
     pub ask_price: f64,
@@ -27,13 +28,20 @@ pub async fn get_btcturk_data(pair: &str) -> Result<BTCTurkData, Box<dyn std::er
     Ok(BTCTurkData { ask_price, ask_volume, bid_price, bid_volume })
 }
 
-pub async fn get_balance(asset: &str) -> Result<(), Box<dyn std::error::Error>> {
+
+pub async fn get_balance(asset: &str) -> Result<Option<f64>, Box<dyn std::error::Error>> {
     let keys = ApiKeys::new("PUBLICKEY", "PRIVATEKEY")?;
     let client = Client::new(Some(keys), None)?;
 
     let balances: Vec<AssetBalance> = client.account_balance().await?;
 
-    // parse asset and return it
+    for balance in balances {
+        if balance.asset == asset {
+            let balance_str = balance.balance.to_string().replace(",", ".");
+            let balance_value = Decimal::from_str(balance_str.as_str())?.to_f64().ok_or("Invalid balance value")?;
+            return Ok(Some(balance_value));
+        }
+    }
 
-    Ok(())
+    Ok(None)
 }

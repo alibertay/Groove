@@ -22,16 +22,17 @@ pub async fn get_binance_data(pair: &str) -> Result<BinanceData, Box<dyn std::er
     Ok(BinanceData { ask_price, ask_qty, bid_price, bid_qty })
 }
 
-pub fn get_balance(asset: &str) -> Result<(), Box<dyn std::error::Error>> {
+pub fn get_balance(asset: &str) -> Result<f64, Box<dyn std::error::Error>> {
     let api_key = Some("YOUR_API_KEY".into());
     let secret_key = Some("YOUR_SECRET_KEY".into());
 
     let account = Account::new(api_key, secret_key);
 
     match account.get_balance(asset) {
-        Ok(balance) => println!("{} balance: {:?}", asset, balance),
-        Err(e) => println!("Error: {}", e),
+        Ok(balance) => {
+            let balance_value = balance.free.parse::<f64>()?;
+            Ok(balance_value)
+        }
+        Err(e) => Err(Box::new(e)),
     }
-
-    Ok(()) // return balance
 }
