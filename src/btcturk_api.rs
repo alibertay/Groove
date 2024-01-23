@@ -3,6 +3,7 @@ use serde_json::Value;
 use btcturk::{Client, ApiKeys};
 use btcturk::http::private::account_balance::AssetBalance;
 use rust_decimal::prelude::*;
+use crate::config;
 
 pub struct BTCTurkData {
     pub ask_price: f64,
@@ -30,7 +31,10 @@ pub async fn get_btcturk_data(pair: &str) -> Result<BTCTurkData, Box<dyn std::er
 
 
 pub async fn get_balance(asset: &str) -> Result<Option<f64>, Box<dyn std::error::Error>> {
-    let keys = ApiKeys::new("PUBLICKEY", "PRIVATEKEY")?;
+    let apikey = config::get_btcturk_apikey();
+    let secretkey = config::get_btcturk_secretkey();
+
+    let keys = ApiKeys::new(apikey, secretkey)?;
     let client = Client::new(Some(keys), None)?;
 
     let balances: Vec<AssetBalance> = client.account_balance().await?;

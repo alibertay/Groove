@@ -2,6 +2,7 @@ use reqwest;
 use serde_json::Value;
 use binance::api::*;
 use binance::account::*;
+use crate::config;
 
 pub struct BinanceData {
     pub ask_price: f64,
@@ -23,8 +24,8 @@ pub async fn get_binance_data(pair: &str) -> Result<BinanceData, Box<dyn std::er
 }
 
 pub fn get_balance(asset: &str) -> Result<f64, Box<dyn std::error::Error>> {
-    let api_key = Some("YOUR_API_KEY".into());
-    let secret_key = Some("YOUR_SECRET_KEY".into());
+    let api_key = Some(config::get_binance_apikey());
+    let secret_key = Some(config::get_binance_secretkey());
 
     let account = Account::new(api_key, secret_key);
 

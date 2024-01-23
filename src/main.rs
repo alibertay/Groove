@@ -1,6 +1,7 @@
 mod binance_api;
 mod btcturk_api;
 mod market_data;
+mod config;
 use market_data::MarketData;
 use std::{sync::{Arc, Mutex}, thread, time::Duration};
 
@@ -44,8 +45,24 @@ async fn main() {
 
         let data = market_data.lock().unwrap();
         println!("Binance Ask Price: {:?}", data.binance_ask_price);
+        println!("BTCTurk Bid Price: {:?}", data.btcturk_bid_price);
+        println!("-------------------------------------------------");
         println!("BTCTurk Ask Price: {:?}", data.btcturk_ask_price);
+        println!("Binance Bid Price: {:?}", data.binance_bid_price);
+        println!("***************************************************");
 
-        thread::sleep(Duration::from_secs(10));
+        if let (Some(binance_ask), Some(btcturk_bid)) = (data.binance_ask_price, data.btcturk_bid_price) {
+            if binance_ask*1.001 < btcturk_bid*0.998 {
+                println!("BINANCE -> BTCTURK");
+            }
+        }
+
+        if let (Some(btcturk_ask), Some(binance_bid)) = (data.btcturk_ask_price, data.binance_bid_price) {
+            if btcturk_ask*1.002 < binance_bid*0.999 {
+                println!("BTCTURK -> BINANCE");
+            }
+        }
+
+        thread::sleep(Duration::from_secs(5));
     }
 }
