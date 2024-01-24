@@ -2,6 +2,7 @@ use reqwest;
 use serde_json::Value;
 use binance::api::*;
 use binance::account::*;
+use binance::model::Transaction;
 use crate::config;
 
 pub struct BinanceData {
@@ -23,7 +24,7 @@ pub async fn get_binance_data(pair: &str) -> Result<BinanceData, Box<dyn std::er
     Ok(BinanceData { ask_price, ask_qty, bid_price, bid_qty })
 }
 
-pub fn get_balance(asset: &str) -> Result<f64, Box<dyn std::error::Error>> {
+pub fn get_balance(asset: &str) -> Result<Option<f64>, Box<dyn std::error::Error>> {
     let api_key = Some(config::get_binance_apikey());
     let secret_key = Some(config::get_binance_secretkey());
 
@@ -32,8 +33,32 @@ pub fn get_balance(asset: &str) -> Result<f64, Box<dyn std::error::Error>> {
     match account.get_balance(asset) {
         Ok(balance) => {
             let balance_value = balance.free.parse::<f64>()?;
-            Ok(balance_value)
+            Ok(Some(balance_value))
         }
-        Err(e) => Err(Box::new(e)),
+        Err(e) => Ok(None),
+    }
+}
+
+pub fn buy_market(asset: &str, qty: f64) -> Result<Option<Transaction>, Box<dyn std::error::Error>> {
+    let api_key = Some(config::get_binance_apikey());
+    let secret_key = Some(config::get_binance_secretkey());
+
+    let account = Account::new(api_key, secret_key);
+
+    match account.market_buy(asset, qty) {
+        Ok(_transaction) => Ok(Some(_transaction)),
+        Err(e) => Ok(None)
+    }
+}
+
+pub fn sell_market(asset: &str, qty: f64) -> Result<Option<Transaction>, Box<dyn std::error::Error>> {
+    let api_key = Some(config::get_binance_apikey());
+    let secret_key = Some(config::get_binance_secretkey());
+
+    let account = Account::new(api_key, secret_key);
+
+    match account.market_sell(asset, qty) {
+        Ok(_transaction) => Ok(Some(_transaction)),
+        Err(e) => Ok(None)
     }
 }

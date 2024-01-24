@@ -3,6 +3,8 @@ use serde_json::Value;
 use btcturk::{Client, ApiKeys};
 use btcturk::http::private::account_balance::AssetBalance;
 use rust_decimal::prelude::*;
+use rust_decimal::Decimal;
+use btcturk::http::private::submit_order::NewOrder;
 use crate::config;
 
 pub struct BTCTurkData {
@@ -48,4 +50,34 @@ pub async fn get_balance(asset: &str) -> Result<Option<f64>, Box<dyn std::error:
     }
 
     Ok(None)
+}
+
+pub async fn buy_market(asset: &str, qty: f64) -> Result<Option<NewOrder>, Box<dyn std::error::Error>> {
+    let apikey = config::get_btcturk_apikey();
+    let secretkey = config::get_btcturk_secretkey();
+
+    let keys = ApiKeys::new(apikey, secretkey)?;
+    let client = Client::new(Some(keys), None)?;
+
+    let new_qty: Decimal = Decimal::from_f64(qty).unwrap();
+
+    match client.market_buy(asset, new_qty).await {
+        Ok(_newOrder) => Ok(Some(_newOrder)),
+        Err(e) => Ok(None)
+    }
+}
+
+pub async fn sell_market(asset: &str, qty: f64) -> Result<Option<NewOrder>, Box<dyn std::error::Error>> {
+    let apikey = config::get_btcturk_apikey();
+    let secretkey = config::get_btcturk_secretkey();
+
+    let keys = ApiKeys::new(apikey, secretkey)?;
+    let client = Client::new(Some(keys), None)?;
+
+    let new_qty: Decimal = Decimal::from_f64(qty).unwrap();
+
+    match client.market_sell(asset, new_qty).await {
+        Ok(_newOrder) => Ok(Some(_newOrder)),
+        Err(e) => Ok(None)
+    }
 }
