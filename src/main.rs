@@ -4,9 +4,13 @@ mod market_data;
 mod config;
 use market_data::MarketData;
 use std::{sync::{Arc, Mutex}, thread, time::Duration};
+mod SQL;
 
 #[tokio::main]
 async fn main() {
+    // create db and table
+    SQL::initialize_db();
+
     let market_data = Arc::new(Mutex::new(MarketData::new()));
 
     loop {
@@ -90,10 +94,22 @@ async fn main() {
                 );
 
                 // Buy from Binance
-                binance_api::buy_market("BTCTRY", qty);
+                binance_api::buy_market("BTCTRY", amount);
 
                 // Sell from BTCTURK
-                btcturk_api::sell_market("BTCTRY", qty);
+                btcturk_api::sell_market("BTCTRY", amount);
+
+                // unwrap btcturk bid price to insert db
+                let btcturk_bid_price_to_use: f64 = data.btcturk_bid_price.unwrap_or(0.0);
+
+                // Insert to SQL
+                SQL::insert_transaction(
+                "BTCTRY",
+                binance_ask_price_to_use,
+                btcturk_bid_price_to_use,
+                amount,
+                "BINANCE->BTCTURK"
+                );
             }
         }
 
@@ -136,10 +152,22 @@ async fn main() {
                 );
 
                 // Buy from BTCTURK
-                binance_api::buy_market("BTCTRY", qty);
+                btcturk_api::buy_market("BTCTRY", amount);
 
                 // Sell from Binance
-                binance_api::sell_market("BTCTRY", qty);
+                binance_api::sell_market("BTCTRY", amount);
+
+                // unwrap binance bid price to insert db
+                let binance_bid_price_to_use: f64 = data.binance_bid_price.unwrap_or(0.0);
+
+                // Insert to SQL
+                SQL::insert_transaction(
+                "BTCTRY",
+                btcturk_ask_price_to_use,
+                binance_bid_price_to_use,
+                amount,
+                "BTCTURK->BINANCE"
+                );
             }
         }
 
