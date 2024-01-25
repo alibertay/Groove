@@ -48,12 +48,6 @@ async fn main() {
         let _ = tokio::try_join!(binance_handle, btcturk_handle);
 
         let data = market_data.lock().unwrap();
-        println!("Binance Ask Price: {:?}", data.binance_ask_price);
-        println!("BTCTurk Bid Price: {:?}", data.btcturk_bid_price);
-        println!("-------------------------------------------------");
-        println!("BTCTurk Ask Price: {:?}", data.btcturk_ask_price);
-        println!("Binance Bid Price: {:?}", data.binance_bid_price);
-        println!("***************************************************");
 
         if let (Some(binance_ask), Some(btcturk_bid)) = (data.binance_ask_price, data.btcturk_bid_price) {
             if binance_ask*1.001 < btcturk_bid*0.998 {
