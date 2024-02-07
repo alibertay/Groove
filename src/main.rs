@@ -12,13 +12,14 @@ async fn main() {
     SQL::initialize_db();
 
     let market_data = Arc::new(Mutex::new(MarketData::new()));
-
+    let currency_pair = "BTCTRY";
+    
     loop {
         let market_data_clone_for_binance = Arc::clone(&market_data);
         let market_data_clone_for_btcturk = Arc::clone(&market_data);
 
         let binance_handle = tokio::spawn(async move {
-            match binance_api::get_binance_data("BTCTRY").await {
+            match binance_api::get_binance_data(currency_pair).await {
                 Ok(data) => {
                     let mut data_lock = market_data_clone_for_binance.lock().unwrap();
 
@@ -32,7 +33,7 @@ async fn main() {
         });
 
         let btcturk_handle = tokio::spawn(async move {
-            match btcturk_api::get_btcturk_data("BTCTRY").await {
+            match btcturk_api::get_btcturk_data(currency_pair).await {
                 Ok(data) => {
                     let mut data_lock = market_data_clone_for_btcturk.lock().unwrap();
 
@@ -88,10 +89,10 @@ async fn main() {
                 );
 
                 // Buy from Binance
-                binance_api::buy_market("BTCTRY", amount);
+                binance_api::buy_market(currency_pair, amount);
 
                 // Sell from BTCTURK
-                btcturk_api::sell_market("BTCTRY", amount);
+                btcturk_api::sell_market(currency_pair, amount);
 
                 // unwrap btcturk bid price to insert db
                 let btcturk_bid_price_to_use: f64 = data.btcturk_bid_price.unwrap_or(0.0);
@@ -146,10 +147,10 @@ async fn main() {
                 );
 
                 // Buy from BTCTURK
-                btcturk_api::buy_market("BTCTRY", amount);
+                btcturk_api::buy_market(currency_pair, amount);
 
                 // Sell from Binance
-                binance_api::sell_market("BTCTRY", amount);
+                binance_api::sell_market(currency_pair, amount);
 
                 // unwrap binance bid price to insert db
                 let binance_bid_price_to_use: f64 = data.binance_bid_price.unwrap_or(0.0);
